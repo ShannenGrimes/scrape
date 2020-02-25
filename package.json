@@ -1,0 +1,19 @@
+{
+  "name": "scrape",
+  "version": "1.0.0",
+  "description": "All that fits into Scrape",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShannenGrimes/scrape.git"
+  },
+  "author": "Shannen Grimes",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ShannenGrimes/scrape/issues"
+  },
+  "homepage": "https://github.com/ShannenGrimes/scrape#readme"
+}
