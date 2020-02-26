@@ -2,7 +2,7 @@
   "name": "scrape",
   "version": "1.0.0",
   "description": "All that fits into Scrape",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,11 +17,15 @@
   },
   "homepage": "https://github.com/ShannenGrimes/scrape#readme",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.12.1",
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
     "express": "^4.17.1",
     "express-handlebars": "^3.1.0",
     "mongoose": "^5.9.2",
     "morgan": "^1.9.1"
+  },
+  "devDependencies": {
+    "font-awesome": "^4.7.0"
   }
 }

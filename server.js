@@ -23,28 +23,30 @@ var app = express();
 
 // Use morgan logger for logging requests
 app.use(logger("dev"));
+
 // Parse request body as JSON
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
 // Make public a static folder
 app.use(express.static("public"));
 
 // Use handlebars for HTML content rendering
-app.engine(
-  "handlebars",
-  exphbs({
-    defaultLayout: "main",
-    partialsDir: path.join(__dirname, "/views/layouts/partials")
-  })
-);
-app.set("view engine", "handlebars");
+app.engine("handlebars", exphbs({
+  defaultLayout: 'main'
+}));
+app.set('view engine', 'handlebars');
 
 // Connect to the Mongo DB
 var MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost/mongooseScrape";
-mongoose.connect(MONGODB_URI);
+  process.env.MONGODB_URI || "mongodb://localhost/scrape";
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
+mongoose.set('useCreateIndex', true);
 
 // Routes
+app.get(require('./routes/apiroutes'));
+app.get(require('./routes/htmlroutes'));
+
 // Search articles
 app.get("/", (req, res) => {
   Article.find({ saved: false }, (error, data) => {
