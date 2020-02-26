@@ -2,8 +2,8 @@ var express = require("express");
 var logger = require("morgan");
 var mongoose = require("mongoose");
 var exphbs = require("express-handlebars");
-var bodyParser = require("body-parser");
-var methodOverride = require('method-override');
+// var bodyParser = require("body-parser");
+// var methodOverride = require('method-override');
 
 // Our scraping tools
 // Axios is a promised-based http library, similar to jQuery's Ajax method
@@ -13,13 +13,13 @@ var cheerio = require("cheerio");
 
 // Require all models
 var db = require("./models");
+var Note = require("./models/Note.js");
+var Article = require("./models/Article.js");
 
 var PORT = 3000;
 
 // Initialize Express
 var app = express();
-
-// Configure middleware
 
 // Use morgan logger for logging requests
 app.use(logger("dev"));
@@ -29,17 +29,47 @@ app.use(express.json());
 // Make public a static folder
 app.use(express.static("public"));
 
+// Use handlebars for HTML content rendering
+app.engine(
+  "handlebars",
+  exphbs({
+    defaultLayout: "main",
+    partialsDir: path.join(__dirname, "/views/layouts/partials")
+  })
+);
+app.set("view engine", "handlebars");
+
 // Connect to the Mongo DB
-mongoose.connect("mongodb://localhost/unit18Populater", {
-  useNewUrlParser: true
-});
+var MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://localhost/mongooseScrape";
+mongoose.connect(MONGODB_URI);
 
 // Routes
+// Search articles
+app.get("/", (req, res) => {
+  Article.find({ saved: false }, (error, data) => {
+    const hbsObject = {
+      article: data
+    };
+    res.render("index", hbsObject);
+  });
+});
+// Saved articles
+app.get("/saved", (req, res) => {
+  Article.find({ saved: true })
+    .populate("notes")
+    .exec((error, articles) => {
+      const hbsObject = {
+        article: articles
+      };
+      res.render("saved", hbsObject);
+    });
+});
 
-// A GET route for scraping the echoJS website
+// A GET route for scraping the NPR website
 app.get("/scrape", function(req, res) {
   // First, we grab the body of the html with axios
-  axios.get("http://www.echojs.com/").then(function(response) {
+  axios.get("https://www.npr.org/sections/politics/").then(function(response) {
     // Then, we load that into cheerio and save it to $ for a shorthand selector
     var $ = cheerio.load(response.data);
 
@@ -100,18 +130,87 @@ app.get("/articles/:id", function(req, res) {
     });
 });
 
-// Route for saving/updating an Article's associated Note
-app.post("/articles/:id", function(req, res) {
-  // TODO
-  // ====
-  // save the new note that gets posted to the Notes collection
-  // then find an article from the req.params.id
-  // and update it's "note" property with the _id of the new note
-  db.Article.findOne({_id: req.params.id})
-  .populate
-  .then(function(dbArticle){
-    res.json(dbArticle)
-  })
+// ROUTE: This will get all the articles we scraped from the mongo DB
+app.get("/articles", (req, res) => {
+  // Grab every doc in the Articles array
+  Article.find({}, (error, doc) => {
+    // Log any errors
+    if (error) {
+      console.log(error);
+    }
+    // Or send the doc to the browser as a json object
+    else {
+      res.json(doc);
+    }
+  });
+});
+
+// ROUTE: Will get particular article by its ID along with any notes
+app.get("/articles/:id", (req, res) => {
+  Article.findOne({ _id: req.params.id })
+    .populate("note")
+    .then(function(dbArticle) {
+      res.json(dbArticle);
+    })
+    .catch(function(error) {
+      res.json(error);
+    });
+});
+
+// ROUTE: Will save one article
+app.post("/articles/save/:id", (req, res) => {
+  Article.findOneAndUpdate(
+    { _id: req.params.id },
+    { saved: true }
+  ).exec((error, doc) => (error ? console.log(error) : res.send(doc)));
+});
+
+// ROUTE: Make a new note or update existing note
+app.post("/notes/save/:id", (req, res) => {
+  const newNote = new Note({
+    body: req.body.text,
+    article: req.params.id
+  });
+  newNote.save((error, note) => {
+    if (error) {
+      console.log(error);
+    } else {
+      Article.findOneAndUpdate(
+        { _id: req.params.id },
+        { $push: { notes: note } }
+      ).exec(error => {
+        if (error) {
+          console.log(error);
+          res.send(error);
+        } else {
+          res.send(note);
+        }
+      });
+    }
+  });
+});
+
+// ROUTE: Unsave a particular article and all notes for article
+app.post("/articles/delete/:id", (req, res) => {
+  Article.findOneAndUpdate(
+    { _id: req.params.id },
+    { saved: false, notes: [] }
+  ).exec((error, doc) => (error ? console.log(error) : res.send(doc)));
+});
+
+// ROUTE: Delete a note from the database
+app.delete("/notes/delete/:note_id/:article_id", (req, res) => {
+  Note.findOneAndRemove({ _id: req.params.note_id }, error => {
+    if (error) {
+      console.log(error);
+      res.send(error);
+    } else {
+      Article.findOneAndUpdate(
+        { _id: req.params.article_id },
+        { $pull: { notes: req.params.note_id } }
+      ).exec(error => (error ? res.send(error) : res.send("Note Gone!")));
+    }
+  });
 });
 
 // Start the server
