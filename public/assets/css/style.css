@@ -1,0 +1,13 @@
+.jumbotron {
+    background-image: url('/public/assets/images/background.jpg');
+}
+
+.jumbotron .container-fluid {
+    background-color:rgba(52, 2, 133, 0.5);
+    height: 100%;
+}
+
+.btn,
+.card {
+    border-radius: 0px
+}

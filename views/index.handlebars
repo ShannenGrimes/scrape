@@ -6,8 +6,8 @@
 </header>
 <main class="container">
     {{#each article}}
-        {{!-- {{#unless article.saved}} --}}
-            {{> articles/saved}}
-        {{!-- {{/unless}} --}}
+        {{#unless saved}}
+            {{> articles/unsaved}}
+        {{/unless}}
     {{/each}}
 </main>
