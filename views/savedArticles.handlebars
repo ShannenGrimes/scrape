@@ -1,21 +1,23 @@
 {{> header }}
+
 <div class="container-fluid article-container">
 {{#if article}}
   {{#each article}}
-  <div data-_id={{this._id}} class="card">
-    <div class="card-header">
-      <h3>
-        <a class="article-link" target="_blank" rel="noopener noreferrer" href={{this.url}}>{{this.headline}}</a>
-        <a class="btn btn-success save">Save Article</a>
-      </h3>
+      <div data-_id={{this._id}} class="card">
+      <div class="card-header">
+        <h3>
+          <a class="article-link" target="_blank" rel="noopener noreferrer" href={{this.url}}>{{this.headline}}</a>
+          <a class="btn btn-danger delete">Delete From Saved</a>
+          <a class="btn btn-warning notes">Article Notes</a>
+        </h3>
+      </div>
+      <div class="card-body">{{this.summary}}</div>
     </div>
-    <div class="card-body">{{this.summary}}</div>
-  </div>
   {{/each}}
 </div>
 {{else}}
   <div class='alert alert-warning text-center'>
-    <h4>You haven't saved any new articles.</h4>
+    <h4>Uh Oh. Looks like we don't have any new articles saved.</h4>
   </div>
   <div class="card">
     <div class="card-header text-center">
@@ -23,10 +25,10 @@
     </div>
     <div class="card-body text-center">
       <h4>
-        <a class="scrape-new">Try Scraping New Articles</a>
+        <a class="scrape-new">Try Scraping New Articles and then save</a>
       </h4>
       <h4>
-        <a href="/saved">Go to the Saved Articles</a>
+        <a href="/">Go to Scrape articles page</a>
       </h4>
     </div>
   </div>
